@@ -63,6 +63,7 @@ class AliyunBaseStorage(BucketOperationMixin, Storage):
         self.end_point = _normalize_endpoint(self._get_config('END_POINT').strip())
         self.bucket_name = self._get_config('BUCKET_NAME')
         self.cname = self._get_config('ALIYUN_OSS_CNAME')
+        self.media_url = self._get_config('MEDIA_URL')
 
         self.auth = Auth(self.access_key_id, self.access_key_secret)
         self.service = Service(self.auth, self.end_point)
@@ -115,7 +116,6 @@ class AliyunBaseStorage(BucketOperationMixin, Storage):
         work. We check to make sure that the path pointed to is not outside
         the directory specified by the LOCATION setting.
         """
-
         base_path = force_text(self.location)
         base_path = base_path.rstrip('/')
 
@@ -126,6 +126,9 @@ class AliyunBaseStorage(BucketOperationMixin, Storage):
                 final_path[base_path_len:base_path_len + 1] not in ('', '/')):
             raise SuspiciousOperation("Attempted access to '%s' denied." %
                                       name)
+        # remove media url part
+        if final_path.startswith(self.media_url):
+            final_path = final_path[len(self.media_url):]
         return final_path.lstrip('/')
 
     def _get_target_name(self, name):
